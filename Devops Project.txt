@@ -1,0 +1,63 @@
+
+ec2_instance { 'Test-Instance’:
+  ensure            => present,
+  region            => 'us-west-2',
+  availability_zone => 'us-west-1a',
+  image_id          => 'ami-696e652c',
+  instance_type     => 't2.small’,
+  security_groups   => ['test-group'],
+}
+node 'Test-Instance' {
+class  {
+	exec { ‘apt-update’:
+	command => ‘/usr/bin/apt-get update’
+}
+Package {‘WildFly’:
+	Require => Exec [‘apt-update’],
+	Ensure=> installed,
+}
+Server {‘ WildFly’:
+	Ensure => running,
+}
+# Go to the command line of the web Server that you have installed in AWS instance and that web server should serve one page with the following content.
+# Create a Directory in the command line and open a file and insert the content that you want.
+# vim testfile
+<html>
+
+<head>
+
+<title>Hello World</title>
+
+</head>
+
+<body>
+
+<h1>Hello World!</h1>
+
+</body>
+
+</html>
+
+# Securing the Application and the hosting the port 80 and are publicly exposed 
+
+ec2_loadbalancer { 'sample-load-balancer':
+  ensure             => present,
+  region             => 'us-west-2',
+  instances          => [' Test-Instance’, 'another-instance'],
+  security_groups    => ['test-group’],
+  listeners          => [{
+    protocol => 'tcp',
+    port     => 80,
+  }],
+ }
+
+
+
+Create a new repository in github
+Git clone <repository url>
+Add testcode file to that repository and push the file
+Git add testcode
+Git commit -m “testcode file adding to repository to deploy in web server”
+Git push
+
+
